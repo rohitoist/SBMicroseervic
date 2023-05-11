@@ -1,4 +1,3 @@
-
 server:
   port: 8082
 
@@ -7,7 +6,25 @@ spring:
     name: USER-SERVICE
   config:
     import: optional:configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8085}/
-      
+    # below config required when you want to make your service as a client like your service is calling another service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-52669198.okta.com/oauth2/default
+      client:
+        registration:
+          my-internal-client:
+            provider: okta
+            authorization-grant-type: client_credentials
+            scope: internal
+            client-id: 0oa9fdlip2HiUxzlV5d7
+            client-secret: 5vMaoqzOvvgJPuX1jkzlQKUV8SIyeWgxi6oKIfWd
+            
+        provider:
+          okta:
+            issuer-uri: https://dev-52669198.okta.com/oauth2/default
+            
 #eureka:
 #  instance:
  #   prefer-ip-address: true
@@ -16,3 +33,55 @@ spring:
   #  register-with-eureka: true
   #  service-url:
   #    defaultZone: http://localhost:8761/eureka
+  
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+     web:
+       exposure:
+         include: health
+  endpoint:
+    health:
+      show-details: always
+      
+resilience4j:
+  circuitbreaker:
+    instances:
+      hotelServiceBreaker:
+        register-health-indicator: true
+        event-consumer-buffer-size: 10
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10
+        sliding-window-type: count-based
+      
+  retry:
+    instances:
+      hotelServiceBreakerRetry:
+        max-attempts: 3
+        wait-duration: 5s
+        
+  ratelimiter:
+    instances:
+      hotelServiceBreakerRateLimiter:
+        limitForPeriod: 2
+        limitRefreshPeriod: 1s
+        timeoutDuration: 1s
+        
+#okta config for api gateway
+okta: 
+  oauth2:
+    issuer: https://dev-52669198.okta.com/oauth2/default
+    audience: api://default
+    
+    
+      
+     
+      
+    
+          
