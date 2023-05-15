@@ -1,14 +1,23 @@
 package com.lcwd.UserService.UserService.Controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.lcwd.UserService.UserService.entities.User;
 import com.lcwd.UserService.UserService.external.service.HotelService;
+import com.lcwd.UserService.UserService.services.UserServices;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -26,6 +35,10 @@ public class UserServiceController {
 	private HotelService hotelService;
 	private Logger logger = org.slf4j.LoggerFactory.getLogger(UserServiceController.class);
 
+	
+	@Autowired
+	private UserServices userServices;
+	
 	@GetMapping("/")
 	public String getServiceName() {
 
@@ -90,4 +103,36 @@ public class UserServiceController {
 		logger.info(getHotelServiceName);
 		return getHotelServiceName;
 	}
+	
+	
+	//real methods with database operation
+	
+	@PostMapping("/createUser")
+	public ResponseEntity<User> createUser(@RequestBody User user) {
+		User user1 = userServices.saveUser(user);
+		return ResponseEntity.status(HttpStatus.CREATED).body(user1);
+		
+	}
+	
+	@GetMapping("/getAllUsers")
+	public ResponseEntity<List<User>> getAllUsers() {
+		List<User> userList = userServices.getAlluser();
+		return ResponseEntity.status(HttpStatus.OK).body(userList);
+		
+	}
+	
+	@GetMapping("/findUserById/{userId}")
+	public ResponseEntity<User> findUserById(@PathVariable(name = "userId")String userId) {
+		User user = userServices.getUser(userId);
+		return ResponseEntity.status(HttpStatus.OK).body(user);
+		
+	}
+	
+	@GetMapping("/deleteUserById/{userId}")
+	public ResponseEntity<String> deleteUserById(@PathVariable(name = "userId")String userId) {
+		userServices.deleteUser(userId);
+		return ResponseEntity.status(HttpStatus.OK).body("user deleted");
+		
+	}
+	
 }
