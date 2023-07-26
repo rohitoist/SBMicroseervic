@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableEurekaClient
 @ComponentScan(basePackages = "com.lcwd.*")
 public class ApiGatewayApplication {
-
+//main class
 	public static void main(String[] args) {
 		SpringApplication.run(ApiGatewayApplication.class, args);
 	}
